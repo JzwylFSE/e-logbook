@@ -7,5 +7,5 @@ export function createClient() {
   )
 }
 
-// Export a singleton instance
+// singleton instance for client-side use
 export const supabase = createClient()
