@@ -6,6 +6,7 @@ import Image from "next/image";
 import { createClientForServer } from "../../utils/supabase/server";
 import { headers } from "next/headers";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function Home() {
   const supabase = createClientForServer();
@@ -20,6 +21,7 @@ export default async function Home() {
       <p><Link href="/daily_activities">Daily Activities</Link> </p>
       <p> <Link href="/weeks">Weeks</Link> </p>
       <p> <Link href="/workdone_diagram">Diagram of Workdone</Link> </p>
+      <LogoutButton />
     </div>
   );
 }

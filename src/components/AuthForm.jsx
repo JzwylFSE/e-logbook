@@ -1,8 +1,8 @@
 "use client";
 
-import { supabase } from "../../../utils/supabase/client";
+import { supabase } from "../../utils/supabase/client";
 import React from "react";
-import { signInWithGoogle } from "../../../utils/supabase/actions";
+import { signInWithGoogle } from "../../utils/supabase/actions";
 
 export default function AuthForm() {
   return (
