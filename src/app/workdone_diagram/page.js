@@ -1,77 +1,50 @@
-"use client"
-import { useState, useRef } from "react"
-import { ReactSketchCanvas } from "react-sketch-canvas"
-import { supabase } from "../../../utils/supabase/client"
+import { redirect } from "next/navigation"
+import { createClientForServer } from "../../../utils/supabase/server"
+import WorkdoneDiagramForm from "@/components/WorkdoneDiagramForm"
+import WorkdoneDiagramList from "@/components/WorkDoneDiagramList"
 
-export default function DrawingPad({ weekId, activityId, userId }) {
-  const canvasRef = useRef(null)
-  const [title, setTitle] = useState("")
-  const [isErasing, setIsErasing] = useState(false)
-  const [strokeColor, setStrokeColor] = useState("#000000")
-  const [strokeWidth, setStrokeWidth] = useState(4)
+export default async function WorkdoneDiagramPage() {
+  const supabase = createClientForServer()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const handleSave = async () => {
-    const drawingData = await canvasRef.current.exportPaths()
-    
-    const { error } = await supabase.from("drawings").insert([{
-      user_id: userId,
-      week_id: weekId,
-      activity_id: activityId,
-      title,
-      drawing_data: drawingData
-    }])
-
-    if (!error) {
-      alert("Drawing saved successfully!")
-      setTitle("")
-      canvasRef.current.clearCanvas()
-    }
+  if (!user) {
+    redirect("/auth")
   }
 
-  const toggleEraser = () => {
-    setIsErasing(!isErasing)
-    setStrokeColor(isErasing ? "#000000" : "#FFFFFF") // White for eraser
-    setStrokeWidth(isErasing ? 4 : 20) // Thicker for eraser
-  }
+  // Fetch diagrams
+  const { data: diagrams } = await supabase
+    .from("workdone_diagram")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  // Fetch weeks for dropdown
+  const { data: weeks } = await supabase
+    .from("weeks")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("start_date", { ascending: false })
+
+  // Fetch activities for dropdown
+  const { data: activities } = await supabase
+    .from("daily_activities")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("activity_date", { ascending: false })
 
   return (
-    // still add description field
-    <div className="space-y-4">
-      <div className="flex gap-4 mb-4">
-        <button
-          onClick={toggleEraser}
-          className={`px-4 py-2 rounded ${isErasing ? "bg-red-500 text-white" : "bg-gray-200"}`}
-        >
-          {isErasing ? "Switch to Pen" : "Use Eraser"}
-        </button>
-        
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Drawing title"
-          className="flex-1 p-2 border rounded"
-        />
-        
-        <button
-          onClick={handleSave}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Save
-        </button>
-      </div>
-
-      <div className="border rounded-lg overflow-hidden">
-        <ReactSketchCanvas
-          ref={canvasRef}
-          width="100%"
-          height="500px"
-          strokeWidth={strokeWidth}
-          strokeColor={strokeColor}
-          eraserWidth={20} // Eraser size when using eraser tool
-          withViewBox={true}
-        />
-      </div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Work Diagrams</h1>
+      <WorkdoneDiagramForm 
+        weeks={weeks} 
+        userId={user.id} 
+        activities={activities} 
+      />
+      <WorkdoneDiagramList 
+        diagrams={diagrams} 
+        activities={activities}
+        weeks={weeks}
+      />
     </div>
   )
 }

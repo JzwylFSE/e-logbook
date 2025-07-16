@@ -10,8 +10,19 @@ export default function ActivityTable({ activities }) {
     )
   }
 
+  const renderSignature = (signature) => {
+    if (!signature) return "—"
+    return (
+      <img 
+        src={signature} 
+        alt="Signature"
+        className="h-12 w-auto object-contain"
+      />
+    )
+  }
+
   return (
-    <div className="overflow-x-auto mt-6">
+    <div className="overflow-x-auto">
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
         <thead className="bg-gray-800 text-white">
           <tr>
@@ -19,6 +30,8 @@ export default function ActivityTable({ activities }) {
             <th className="py-3 px-4 text-left">Week</th>
             <th className="py-3 px-4 text-left">Activity</th>
             <th className="py-3 px-4 text-left">Description</th>
+            <th className="py-3 px-4 text-left">Student</th>
+            <th className="py-3 px-4 text-left">Supervisor</th>
             <th className="py-3 px-4 text-left">Actions</th>
           </tr>
         </thead>
@@ -26,14 +39,20 @@ export default function ActivityTable({ activities }) {
           {activities.map((activity) => (
             <tr key={activity.id}>
               <td className="py-3 px-4">
-                {format(new Date(activity.activity_date), 'MMM dd, yyyy')}
+                {format(new Date(activity.activity_date), "MMM dd, yyyy")}
               </td>
               <td className="py-3 px-4">
                 Week {activity.weeks?.week_number}
               </td>
               <td className="py-3 px-4">{activity.nature_of_activity}</td>
+              <td className="py-3 px-4 max-w-xs truncate" title={activity.description}>
+                {activity.description || "—"}
+              </td>
               <td className="py-3 px-4">
-                {activity.description || 'No description'}
+                {renderSignature(activity.student_signature)}
+              </td>
+              <td className="py-3 px-4">
+                {renderSignature(activity.supervisor_signature)}
               </td>
               <td className="py-3 px-4">
                 <button className="text-blue-500 hover:text-blue-700 mr-2">
