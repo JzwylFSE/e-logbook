@@ -5,7 +5,8 @@ import ActivityForm from "@/components/ActivityForm"
 
 export default async function DailyActivitiesPage() {
   const supabase = createClientForServer()
-  const { data: { user } } = await supabase.auth.getUser()
+  //const {data: { user } } = await supabase.auth.getSession()
+  const {data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     redirect("/auth")

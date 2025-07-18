@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClientForServer } from "../../../utils/supabase/server"
 import WorkdoneDiagramForm from "@/components/WorkdoneDiagramForm"
-import WorkdoneDiagramList from "@/components/WorkDoneDiagramList"
+import WorkdoneDiagramList from "@/components/WorkdoneDiagramList"
 
 export default async function WorkdoneDiagramPage() {
   const supabase = createClientForServer()

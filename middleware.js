@@ -1,8 +1,8 @@
-import { createClient } from "./src/utils/supabase/server"
+import { createClientForServer } from "./utils/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function middleware(request) {
-  const supabase = createClient()
+  const supabase = createClientForServer()
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
