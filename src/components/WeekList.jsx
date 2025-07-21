@@ -1,5 +1,4 @@
 "use client"
-import { format } from "date-fns"
 
 export default function WeekList({ weeks, getWeekRange }) {
   if (!weeks || weeks.length === 0) {

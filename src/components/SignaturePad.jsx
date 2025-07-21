@@ -80,7 +80,7 @@ export default function SignaturePad({ onSave, label }) {
           // These classes apply to the wrapper div that SignatureCanvas creates
           className="w-full h-48"
           canvasProps={{
-            width: 200, // Internal resolution width of the canvas element
+            width: 600, // Internal resolution width of the canvas element
             height: 200, // Internal resolution height of the canvas element
             style: { touchAction: 'none' } // Important for preventing scrolling on touch devices while drawing
           }}

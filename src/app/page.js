@@ -2,8 +2,6 @@
 
 import React from "react"
 import { createClient } from "../../utils/supabase/client"
-import Image from "next/image"
-import { headers } from "next/headers"
 import Link from "next/link"
 import AuthButton from "@/components/AuthButton"
 
@@ -11,8 +9,6 @@ export default async function Home() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   console.log("User session:", {user})
-
-  // console.log(session)
 
   return (
     <div className="p-4">
@@ -38,12 +34,12 @@ export default async function Home() {
           </Link>
         </p>
       </div>
-
-      {!user && (
+{/* 
+      {user && (
         <div className="mt-8 p-4 bg-yellow-100 border border-yellow-300 rounded">
           <p>Please login to access all features</p>
         </div>
-      )}
+      )} */}
     </div>
   )
 }
