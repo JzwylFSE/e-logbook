@@ -5,25 +5,31 @@ import { supabase } from "../../utils/supabase/client";
 import { useRouter } from "next/navigation";
 import SignaturePad from "./SignaturePad";
 
-export default function ActivityForm({ weeks, userId }) {
+export default function ActivityForm({
+  initialData = {},
+  weeks = [],
+  onSubmit,
+}) {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    week_id: "",
-    activity_date: new Date().toISOString().split("T")[0],
-    nature_of_activity: "",
-    description: "",
-    student_signature: "",
-    supervisor_signature: "",
+    activity_date: initialData?.activity_date?.split("T")[0] || "",
+    nature_of_activity: initialData?.nature_of_activity || "",
+    description: initialData?.description || "",
+    week_id: initialData?.week_id || weeks[0]?.id || "",
+    student_signature: initialData?.student_signature || "",
+    supervisor_signature: initialData?.supervisor_signature || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // If weeks change and week_id is not set, set default
     if (weeks?.length > 0 && !formData.week_id) {
       setFormData((prev) => ({
         ...prev,
         week_id: weeks[0].id,
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weeks]);
 
   const handleSubmit = async (e) => {
@@ -141,10 +147,12 @@ export default function ActivityForm({ weeks, userId }) {
           <SignaturePad
             label="Student Signature"
             onSave={(sig) => handleSignatureSave("student_signature", sig)}
+            initialValue={formData.student_signature}
           />
           <SignaturePad
             label="Supervisor Signature"
             onSave={(sig) => handleSignatureSave("supervisor_signature", sig)}
+            initialValue={formData.supervisor_signature}
           />
         </div>
 

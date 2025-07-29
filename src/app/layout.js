@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "My E-logbook",
+  title: "E-logbook",
   description: "An E-logbook application to record my IT activities",
 };
 
