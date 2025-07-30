@@ -44,11 +44,14 @@ export default function SettingsPanel({ user, profile }) {
     setSuccess("");
 
     try {
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        full_name: formData.full_name,
-        updated_at: new Date().toISOString("en-GB"),
-      });
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: formData.full_name,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id)
+        .select();
 
       if (error) throw error;
       setSuccess("Profile updated successfully!");
@@ -79,7 +82,7 @@ export default function SettingsPanel({ user, profile }) {
 
       // delete old avatar(if exists)
       if (formData.avatar_url) {
-        const oldFileName = formData.avatar_url.split("/").pop();
+        const oldFileName = formData.avatar_url.split("/").pop().split("?")[0];
         await supabase.storage.from("avatars").remove([oldFileName]);
       }
 
@@ -88,7 +91,7 @@ export default function SettingsPanel({ user, profile }) {
         .from("avatars")
         .upload(filePath, file, {
           cacheControl: "3600",
-          upsert: true, // allows overwriting existing files
+          upsert: true,
         });
 
       if (uploadError) throw uploadError;
@@ -99,22 +102,23 @@ export default function SettingsPanel({ user, profile }) {
       } = supabase.storage.from("avatars").getPublicUrl(filePath, {
         download: false,
       });
-      console.log('Avatar URL:', formData.avatar_url);
 
-      // update profile
-      const timestamp = Date.now("en-GB");
+      const timestamp = Date.now();
       const avatarUrlWithCache = `${publicUrl}?t=${timestamp}`;
 
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        avatar_url: avatarUrlWithCache,
-        updated_at: new Date().toISOString("en-GB"),
-      });
+      // update profile using API docs pattern
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          avatar_url: avatarUrlWithCache,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id)
+        .select();
 
       if (error) throw error;
 
       setFormData({ ...formData, avatar_url: avatarUrlWithCache });
-      console.log(setFormData)
       setSuccess("Avatar updated successfully!");
     } catch (err) {
       setError(err.message || "Failed to upload avatar");

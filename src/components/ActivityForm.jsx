@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import SignaturePad from "./SignaturePad";
 
 export default function ActivityForm({
-  initialData = {},
+  initialData = null,
   weeks = [],
-  onSubmit,
+  userId,
+  isEditMode = false,
 }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -36,27 +37,58 @@ export default function ActivityForm({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const { error } = await supabase.from("daily_activities").insert([
-      {
-        ...formData,
-        user_id: userId,
-      },
-    ]);
+    try {
+      if (isEditMode && initialData?.id) {
+        // Edit logic using Supabase API docs pattern
+        const { data, error } = await supabase
+          .from("daily_activities")
+          .update({
+            activity_date: new Date(formData.activity_date).toISOString(),
+            nature_of_activity: formData.nature_of_activity,
+            description: formData.description,
+            week_id: formData.week_id,
+            student_signature: formData.student_signature,
+            supervisor_signature: formData.supervisor_signature,
+          })
+          .eq("id", initialData.id)
+          .select();
 
-    setIsSubmitting(false);
+        if (error) throw error;
+      } else {
+        // Add logic
+        if (!userId) throw new Error("User ID is required");
+        const { data, error } = await supabase
+          .from("daily_activities")
+          .insert([
+            {
+              activity_date: new Date(formData.activity_date).toISOString(),
+              nature_of_activity: formData.nature_of_activity,
+              description: formData.description,
+              week_id: formData.week_id,
+              student_signature: formData.student_signature,
+              supervisor_signature: formData.supervisor_signature,
+              user_id: userId,
+            },
+          ])
+          .select();
 
-    if (error) {
-      alert("Error creating activity: " + error.message);
-    } else {
-      router.refresh();
+        if (error) throw error;
+      }
+      // Always redirect and reset form after add/edit
       setFormData({
-        week_id: weeks?.[0]?.id || "",
-        activity_date: new Date().toISOString().split("T")[0],
+        activity_date: "",
         nature_of_activity: "",
         description: "",
+        week_id: weeks[0]?.id || "",
         student_signature: "",
         supervisor_signature: "",
       });
+      router.push("/daily_activities");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -76,7 +108,10 @@ export default function ActivityForm({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-      <h2 className="text-xl font-semibold mb-4">Add New Activity</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {isEditMode ? "Edit Activity" : "Add New Activity"}
+      </h2>
+
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -156,15 +191,41 @@ export default function ActivityForm({
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`px-4 py-2 rounded text-white ${
-            isSubmitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-          }`}
-        >
-          {isSubmitting ? "Adding..." : "Add Activity"}
-        </button>
+        <div className="flex justify-end gap-4 pt-6">
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({
+                activity_date: "",
+                nature_of_activity: "",
+                description: "",
+                week_id: weeks[0]?.id || "",
+                student_signature: "",
+                supervisor_signature: "",
+              });
+              router.push("/daily_activities");
+            }}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`px-4 py-2 rounded text-white ${
+              isSubmitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+            }`}
+          >
+            {isSubmitting
+              ? isEditMode
+                ? "Saving..."
+                : "Adding..."
+              : isEditMode
+              ? "Save Changes"
+              : "Add Activity"}
+          </button>
+        </div>
       </form>
     </div>
   );

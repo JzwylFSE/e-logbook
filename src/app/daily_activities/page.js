@@ -32,7 +32,12 @@ export default async function DailyActivitiesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Daily Activity</h1>
       </div>
-      <ActivityForm weeks={weeks} userId={user.id} />
+      <ActivityForm 
+        weeks={weeks} 
+        userId={user.id} 
+        isEditMode={false}
+        initialData={null}
+      />
 
       {/* Show limited activities with a link to view all */}
         <div className="flex justify-between items-center mb-6 mt-10">
