@@ -1,133 +1,166 @@
-"use client"
-import { useState, useRef } from "react"
-import { supabase } from "../../utils/supabase/client"
-import { useRouter } from "next/navigation"
-import { ReactSketchCanvas } from "react-sketch-canvas"
+"use client";
 
-export default function WorkdoneDiagramForm({ weeks, userId, activities }) {
-  const router = useRouter()
-  const canvasRef = useRef(null)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [selectedWeek, setSelectedWeek] = useState(weeks?.[0]?.id || "")
-  const [selectedActivity, setSelectedActivity] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+import { useState, useRef, useEffect } from "react";
+import { supabase } from "../../utils/supabase/client";
+import { ReactSketchCanvas } from "react-sketch-canvas";
+
+export default function WorkdoneDiagramForm({ weeks, userId, activities, onDiagramSaved }) {
+  const canvasRef = useRef(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedWeek, setSelectedWeek] = useState("");
+  const [selectedActivity, setSelectedActivity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filteredActivities, setFilteredActivities] = useState([]);
+
+  // Drawing controls
+  const [strokeColor, setStrokeColor] = useState("#000000");
+  const [strokeWidth, setStrokeWidth] = useState(4);
+  const [eraser, setEraser] = useState(false);
+
+  useEffect(() => {
+    if (weeks?.length > 0 && !selectedWeek) {
+      setSelectedWeek(weeks[0].id);
+    }
+  }, [weeks]);
+
+  useEffect(() => {
+    if (selectedWeek && activities) {
+      const filtered = activities.filter(
+        (activity) => activity.week_id?.toString() === selectedWeek.toString()
+      );
+      setFilteredActivities(filtered);
+      setSelectedActivity("");
+    }
+  }, [selectedWeek, activities]);
 
   const handleSave = async () => {
-    setIsSubmitting(true)
-    const drawingData = await canvasRef.current.exportPaths()
-    
-    const { error } = await supabase.from("workdone_diagram").insert([{
-      user_id: userId,
-      week_id: selectedWeek,
-      activity_id: selectedActivity,
-      title,
-      description,
-      drawing_data: drawingData
-    }])
-
-    setIsSubmitting(false)
-
-    if (!error) {
-      alert("Diagram saved successfully!")
-      setTitle("")
-      setDescription("")
-      canvasRef.current.clearCanvas()
-      router.refresh()
+    if (!title || !selectedWeek || !selectedActivity) {
+      alert("Please select a week, activity, and provide a title");
+      return;
     }
-  }
 
-  // Filter activities based on selected week
-  const filteredActivities = activities?.filter(
-    activity => activity.week_id === selectedWeek
-  ) || []
+    setIsSubmitting(true);
+    try {
+      const drawingData = await canvasRef.current.exportPaths();
+      if (!drawingData.length) throw new Error("Please create a drawing first");
+
+      const insertData = {
+        user_id: userId,
+        week_id: selectedWeek,
+        activity_id: selectedActivity,
+        title,
+        description,
+        drawing_data: drawingData,
+        created_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from("drawings")
+        .insert([insertData])
+        .select();
+
+      if (error) throw error;
+
+      if (data?.[0] && onDiagramSaved) {
+        onDiagramSaved(data[0]);
+      }
+
+      // Reset
+      setTitle("");
+      setDescription("");
+      setSelectedActivity("");
+      canvasRef.current.clearCanvas();
+    } catch (error) {
+      alert(`Failed to save diagram: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Week</label>
-          <select
-            value={selectedWeek}
-            onChange={(e) => setSelectedWeek(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          >
-            {weeks?.map((week) => (
-              <option key={week.id} value={week.id}>
-                Week {week.week_number} ({new Date(week.start_date).toLocaleDateString('en-GB')})
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Week Selection */}
+      <select
+        value={selectedWeek}
+        onChange={(e) => setSelectedWeek(e.target.value)}
+        className="w-full p-2 border rounded"
+      >
+        {weeks?.map((week) => (
+          <option key={week.id} value={week.id}>
+            Week {week.week_number} ({new Date(week.start_date).toLocaleDateString("en-GB")})
+          </option>
+        ))}
+      </select>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Associated Activity</label>
-          <select
-            value={selectedActivity}
-            onChange={(e) => setSelectedActivity(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="">Select Activity</option>
-            {filteredActivities.map((activity) => (
-              <option key={activity.id} value={activity.id}>
-                {activity.nature_of_activity} ({new Date(activity.activity_date).toLocaleDateString('en-GB')})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* Activity Selection */}
+      <select
+        value={selectedActivity}
+        onChange={(e) => setSelectedActivity(e.target.value)}
+        className="w-full p-2 border rounded"
+      >
+        <option value="">Select Activity</option>
+        {filteredActivities.map((activity) => (
+          <option key={activity.id} value={activity.id}>
+            {activity.nature_of_activity} ({new Date(activity.activity_date).toLocaleDateString("en-GB")})
+          </option>
+        ))}
+      </select>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Title</label>
+      {/* Title */}
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Diagram title"
+        className="w-full p-2 border rounded"
+      />
+
+      {/* Description */}
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={3}
+        className="w-full p-2 border rounded"
+        placeholder="Optional description"
+      />
+
+      {/* Drawing Controls */}
+      <div className="flex gap-3 flex-wrap">
+        <input type="color" value={strokeColor} onChange={(e) => setStrokeColor(e.target.value)} />
         <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Diagram title"
-          className="w-full p-2 border rounded"
-          required
+          type="number"
+          min="1"
+          max="20"
+          value={strokeWidth}
+          onChange={(e) => setStrokeWidth(Number(e.target.value))}
         />
+        <button onClick={() => setEraser(!eraser)}>{eraser ? "Eraser" : "Draw"}</button>
+        <button onClick={() => canvasRef.current?.undo()}>Undo</button>
+        <button onClick={() => canvasRef.current?.redo()}>Redo</button>
+        <button onClick={() => canvasRef.current?.clearCanvas()}>Clear</button>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className="w-full p-2 border rounded"
-          placeholder="Detailed description of the diagram"
-        />
-      </div>
+      {/* Canvas */}
+      <ReactSketchCanvas
+        ref={canvasRef}
+        width="100%"
+        height="400px"
+        strokeWidth={strokeWidth}
+        strokeColor={strokeColor}
+        eraserWidth={strokeWidth}
+        withViewBox
+        eraserMode={eraser}
+      />
 
-      <div className="border rounded-lg overflow-hidden mb-4">
-        <ReactSketchCanvas
-          ref={canvasRef}
-          width="100%"
-          height="500px"
-          strokeWidth={4}
-          strokeColor="black"
-          withViewBox={true}
-        />
-      </div>
-
-      <div className="flex gap-4">
-        <button
-          onClick={() => canvasRef.current.clearCanvas()}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          Clear Drawing
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSubmitting}
-          className={`px-4 py-2 rounded text-white ${isSubmitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"}`}
-        >
-          {isSubmitting ? "Saving..." : "Save Diagram"}
-        </button>
-      </div>
+      {/* Save */}
+      <button
+        onClick={handleSave}
+        disabled={isSubmitting}
+        className="px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        {isSubmitting ? "Saving..." : "Save Diagram"}
+      </button>
     </div>
-  )
+  );
 }

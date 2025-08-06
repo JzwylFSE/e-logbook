@@ -2,70 +2,48 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase/client";
-import WorkdoneDiagramForm from "@/components/WorkdoneDiagramForm";
 import WorkdoneDiagramList from "@/components/WorkdoneDiagramList";
 import { redirect } from "next/navigation";
 
-export default function WorkdoneDiagramPage() {
+export default function AllDiagramsPage() {
   const [user, setUser] = useState(null);
+  const [diagrams, setDiagrams] = useState([]);
   const [weeks, setWeeks] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [diagrams, setDiagrams] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load user & data
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        redirect("/auth");
+        redirect("/auth")
       }
       setUser(user);
 
-      const [{ data: weekData }, { data: activityData }, { data: diagramData }] = await Promise.all([
+      const [{ data: weeks }, { data: activities }, { data: diagrams }] = await Promise.all([
         supabase.from("weeks").select("*").eq("user_id", user.id).order("start_date", { ascending: false }),
         supabase.from("daily_activities").select("*").eq("user_id", user.id).order("activity_date", { ascending: false }),
         supabase.from("drawings").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
       ]);
 
-      setWeeks(weekData || []);
-      setActivities(activityData || []);
-      setDiagrams(diagramData || []);
+      setWeeks(weeks || []);
+      setActivities(activities || []);
+      setDiagrams(diagrams || []);
       setLoading(false);
     };
 
-    fetchData();
+    loadData();
   }, []);
 
-  // When a diagram is saved
-  const handleDiagramSaved = (newDiagram) => {
-    setDiagrams((prev) => [newDiagram, ...prev]);
-  };
-
-  // When a diagram is deleted
   const handleDiagramDeleted = (id) => {
-    setDiagrams((prev) => prev.filter((diagram) => diagram.id !== id));
+    setDiagrams((prev) => prev.filter((d) => d.id !== id));
   };
 
-  if (loading) {
-    return <p>Loading diagrams...</p>;
-  }
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Work Done Diagrams</h1>
-
-      {/* Form for adding diagrams */}
-      {user && (
-        <WorkdoneDiagramForm
-          weeks={weeks}
-          userId={user.id}
-          activities={activities}
-          onDiagramSaved={handleDiagramSaved}
-        />
-      )}
-
-      {/* List of diagrams */}
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">All Work Diagrams</h1>
       <WorkdoneDiagramList
         diagrams={diagrams}
         activities={activities}

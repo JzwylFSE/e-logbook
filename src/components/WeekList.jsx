@@ -16,7 +16,6 @@ export default function WeekList({ weeks, getWeekRange }) {
           <tr>
             <th className="py-3 px-4 text-left">Week #</th>
             <th className="py-3 px-4 text-left">Date Range (Monday-Sunday)</th>
-            <th className="py-3 px-4 text-left">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
@@ -27,14 +26,6 @@ export default function WeekList({ weeks, getWeekRange }) {
                 <td className="py-3 px-4">{week.week_number}</td>
                 <td className="py-3 px-4">
                   {weekRange.monday} - {weekRange.sunday}
-                </td>
-                <td className="py-3 px-4">
-                  <button className="text-blue-500 hover:text-blue-700 mr-2">
-                    Edit
-                  </button>
-                  <button className="text-red-500 hover:text-red-700">
-                    Delete
-                  </button>
                 </td>
               </tr>
             )

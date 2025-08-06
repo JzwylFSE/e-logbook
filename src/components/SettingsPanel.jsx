@@ -71,62 +71,56 @@ export default function SettingsPanel({ user, profile }) {
 
   // avatar upload handler
   const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    setLoading(true);
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-      // delete old avatar(if exists)
-      if (formData.avatar_url) {
-        const oldFileName = formData.avatar_url.split("/").pop().split("?")[0];
-        await supabase.storage.from("avatars").remove([oldFileName]);
-      }
+  try {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`; // folder is user.id
 
-      // upload new avatar
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-        });
-
-      if (uploadError) throw uploadError;
-
-      // get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath, {
-        download: false,
+    // Upload to Supabase storage
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
       });
 
-      const timestamp = Date.now();
-      const avatarUrlWithCache = `${publicUrl}?t=${timestamp}`;
+    if (uploadError) throw uploadError;
 
-      // update profile using API docs pattern
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
-          avatar_url: avatarUrlWithCache,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id)
-        .select();
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
-      if (error) throw error;
+    const avatarUrlWithCache = `${publicUrl}?t=${Date.now()}`;
 
-      setFormData({ ...formData, avatar_url: avatarUrlWithCache });
-      setSuccess("Avatar updated successfully!");
-    } catch (err) {
-      setError(err.message || "Failed to upload avatar");
-      console.error("Avatar upload error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Update profile table
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: avatarUrlWithCache,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updateError) throw updateError;
+
+    setFormData((prev) => ({ ...prev, avatar_url: avatarUrlWithCache }));
+    setSuccess("Avatar updated successfully!");
+  } catch (err) {
+    setError(err.message || "Failed to upload avatar");
+    console.error("Avatar upload error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
