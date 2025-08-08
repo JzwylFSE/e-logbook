@@ -1,49 +1,67 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../utils/supabase/client";
+import { supabase } from "../../../../utils/supabase/client";
 import WorkdoneDiagramList from "@/components/WorkdoneDiagramList";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default function AllDiagramsPage() {
   const [user, setUser] = useState(null);
-  const [diagrams, setDiagrams] = useState([]);
   const [weeks, setWeeks] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [diagrams, setDiagrams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        redirect("/auth")
-      }
+    const fetchData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) redirect("/auth");
       setUser(user);
 
-      const [{ data: weeks }, { data: activities }, { data: diagrams }] = await Promise.all([
-        supabase.from("weeks").select("*").eq("user_id", user.id).order("start_date", { ascending: false }),
-        supabase.from("daily_activities").select("*").eq("user_id", user.id).order("activity_date", { ascending: false }),
-        supabase.from("drawings").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+      const [
+        { data: weekData },
+        { data: activityData },
+        { data: diagramData },
+      ] = await Promise.all([
+        supabase.from("weeks").select("*").eq("user_id", user.id),
+        supabase.from("daily_activities").select("*").eq("user_id", user.id),
+        supabase
+          .from("drawings")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
 
-      setWeeks(weeks || []);
-      setActivities(activities || []);
-      setDiagrams(diagrams || []);
+      setWeeks(weekData || []);
+      setActivities(activityData || []);
+      setDiagrams(diagramData || []);
       setLoading(false);
     };
 
-    loadData();
+    fetchData();
   }, []);
 
   const handleDiagramDeleted = (id) => {
-    setDiagrams((prev) => prev.filter((d) => d.id !== id));
+    setDiagrams((prev) => prev.filter((diagram) => diagram.id !== id));
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading diagrams...</p>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">All Work Diagrams</h1>
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">All Diagrams</h1>
+        <Link
+          href="/workdone_diagram"
+          className="text-blue-500 hover:underline"
+        >
+          Back to recent diagram
+        </Link>
+      </div>
+
       <WorkdoneDiagramList
         diagrams={diagrams}
         activities={activities}

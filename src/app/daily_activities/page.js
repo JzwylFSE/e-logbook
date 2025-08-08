@@ -19,7 +19,7 @@ export default async function DailyActivitiesPage() {
     .select("*, weeks(week_number, start_date)")
     .eq("user_id", user.id)
     .order("activity_date", { ascending: false })
-    .limit(5); // Only show recent activities
+    .limit(5);
 
   const { data: weeks } = await supabase
     .from("weeks")
@@ -46,7 +46,7 @@ export default async function DailyActivitiesPage() {
             href="/daily_activities/all_activities"
             className="text-blue-500 hover:underline"
           >
-            View all activities →
+            View all activities → 
           </Link>
         </div>
         <ActivityTable activities={activities} />

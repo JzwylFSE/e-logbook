@@ -30,7 +30,6 @@ export default function ActivityForm({
         week_id: weeks[0].id,
       }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weeks]);
 
   const handleSubmit = async (e) => {
@@ -39,7 +38,6 @@ export default function ActivityForm({
 
     try {
       if (isEditMode && initialData?.id) {
-        // Edit logic using Supabase API docs pattern
         const { data, error } = await supabase
           .from("daily_activities")
           .update({
@@ -55,7 +53,6 @@ export default function ActivityForm({
 
         if (error) throw error;
       } else {
-        // Add logic
         if (!userId) throw new Error("User ID is required");
         const { data, error } = await supabase
           .from("daily_activities")
@@ -74,7 +71,7 @@ export default function ActivityForm({
 
         if (error) throw error;
       }
-      // Always redirect and reset form after add/edit
+      // redirect and reset form after add/edit
       setFormData({
         activity_date: "",
         nature_of_activity: "",
@@ -87,6 +84,7 @@ export default function ActivityForm({
     } catch (error) {
       console.error("Error submitting form:", error);
       alert(`Error: ${error.message}`);
+      console.log(error.message)
     } finally {
       setIsSubmitting(false);
     }
