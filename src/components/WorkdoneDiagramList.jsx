@@ -6,7 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../utils/supabase/client";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
 
-export default function WorkdoneDiagramList({ diagrams, activities, weeks, onDiagramDeleted }) {
+export default function WorkdoneDiagramList({
+  diagrams,
+  activities,
+  weeks,
+  onDiagramDeleted,
+}) {
   const canvasRefs = useRef({});
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -39,7 +44,11 @@ export default function WorkdoneDiagramList({ diagrams, activities, weeks, onDia
   };
 
   if (!diagrams.length) {
-    return <div className="bg-gray-100 p-4 rounded-lg text-center">No diagrams yet</div>;
+    return (
+      <div className="bg-gray-100 p-4 rounded-lg text-center">
+        No diagrams yet
+      </div>
+    );
   }
 
   return (
@@ -48,10 +57,16 @@ export default function WorkdoneDiagramList({ diagrams, activities, weeks, onDia
         <div key={diagram.id} className="bg-white shadow rounded-lg p-4">
           <div className="flex justify-between">
             <div>
-              <h2 className="text-lg font-bold">{diagram.title || "Untitled Diagram"}</h2>
+              <h2 className="text-lg font-bold">
+                {diagram.title || "Untitled Diagram"}
+              </h2>
               <p className="text-sm text-gray-500">
-                Week {weeks.find((w) => w.id === diagram.week_id)?.week_number || "—"} •{" "}
-                {activities.find((a) => a.id === diagram.activity_id)?.nature_of_activity || "—"}
+                Week{" "}
+                {weeks.find((w) => w.id === diagram.week_id)?.week_number ||
+                  "—"}{" "}
+                •{" "}
+                {activities.find((a) => a.id === diagram.activity_id)
+                  ?.nature_of_activity || "—"}
               </p>
             </div>
             <span className="text-xs text-gray-400">
@@ -60,7 +75,10 @@ export default function WorkdoneDiagramList({ diagrams, activities, weeks, onDia
           </div>
 
           {/* Read-only canvas */}
-          <div className="mt-4 border rounded-lg overflow-hidden">
+          <div
+            className="mt-4 border rounded-lg overflow-hidden w-full"
+            style={{ maxWidth: "100%" }}
+          >
             <ReactSketchCanvas
               ref={(el) => (canvasRefs.current[diagram.id] = el)}
               width="100%"
@@ -69,7 +87,13 @@ export default function WorkdoneDiagramList({ diagrams, activities, weeks, onDia
               strokeColor="black"
               withViewBox
               readOnly
-              style={{ backgroundColor: "white", pointerEvents: "none" }}
+              style={{
+                backgroundColor: "white",
+                pointerEvents: "none",
+                width: "100%",
+                maxWidth: "100%",
+                display: "block",
+              }}
             />
           </div>
 

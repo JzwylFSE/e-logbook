@@ -6,3 +6,11 @@
 .modal-content {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
+
+/* Add to your globals.css */
+.responsive-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  display: block;
+}

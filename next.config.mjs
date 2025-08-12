@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  darkMode: ["class"],
   images: {
     remotePatterns: [
       {
@@ -13,7 +14,6 @@ const nextConfig = {
         hostname: "wbckkgkyonodzqztlzwz.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/avatars/**",
-        //pathname: "/storage/v1/object/public/**",
       },
     ],
   },

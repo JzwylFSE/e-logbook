@@ -21,6 +21,7 @@ export default function ActivityForm({
     supervisor_signature: initialData?.supervisor_signature || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signaturePadKey, setSignaturePadKey] = useState(Date.now());
 
   useEffect(() => {
     // If weeks change and week_id is not set, set default
@@ -80,11 +81,12 @@ export default function ActivityForm({
         student_signature: "",
         supervisor_signature: "",
       });
+      setSignaturePadKey(Date.now());
       router.push("/daily_activities");
     } catch (error) {
       console.error("Error submitting form:", error);
       alert(`Error: ${error.message}`);
-      console.log(error.message)
+      console.log(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -178,11 +180,13 @@ export default function ActivityForm({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <SignaturePad
+            key={signaturePadKey + "-student"}
             label="Student Signature"
             onSave={(sig) => handleSignatureSave("student_signature", sig)}
             initialValue={formData.student_signature}
           />
           <SignaturePad
+            key={signaturePadKey + "-supervisor"}
             label="Supervisor Signature"
             onSave={(sig) => handleSignatureSave("supervisor_signature", sig)}
             initialValue={formData.supervisor_signature}
