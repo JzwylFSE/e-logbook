@@ -17,7 +17,7 @@ export default async function EmailConfirmPage() {
         <h1 className="text-2xl font-bold mb-4">Verify Your Email</h1>
         <p>Please check your email for a verification link.</p>
         <p className="mt-2 text-sm text-gray-600">
-          If you didn't receive an email, please check your spam folder.
+          If you didn&apos;t receive an email, please check your spam folder.
         </p>
       </div>
     </div>
