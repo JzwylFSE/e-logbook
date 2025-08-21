@@ -4,13 +4,14 @@ import { useState } from "react"
 import { supabase } from "../../../../utils/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"  
 
+export const dynamic = 'force-dynamic'
 export default function UpdatePasswordPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const [password, setPassword] = useState("")    
+    const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")  
+    const [error, setError] = useState("")
     const [message, setMessage] = useState("")
 
     const handleSubmit = async (e) => {
