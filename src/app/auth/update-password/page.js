@@ -1,11 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { supabase } from "../../../../utils/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"  
 
-export const dynamic = 'force-dynamic'
-export default function UpdatePasswordPage() {
+// Loading component for Suspense fallback
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-pulse">Loading password reset form...</div>
+    </div>
+  )
+}
+
+// Main component that uses useSearchParams
+function PasswordUpdateForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [password, setPassword] = useState("")
@@ -30,7 +39,7 @@ export default function UpdatePasswordPage() {
 
             if (error) throw error
 
-            setMessage("Password updated sucessfully! Redirecting...")
+            setMessage("Password updated successfully! Redirecting...")
             setTimeout(() => router.push("/"), 2000)
         } catch (err) {
             setError(err.message)
@@ -80,5 +89,14 @@ export default function UpdatePasswordPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PasswordUpdateForm />
+    </Suspense>
   )
 }
