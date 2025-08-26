@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-        ignoreDuringBuilds: true,
-    },       
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -16,6 +16,12 @@ const nextConfig = {
         hostname: "wbckkgkyonodzqztlzwz.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/avatars/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
+        port: "",
+        pathname: "/api/**",
       },
     ],
   },
