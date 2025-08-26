@@ -2,6 +2,7 @@ import React from "react";
 import { createClientForServer } from "../../utils/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = createClientForServer();
@@ -12,16 +13,20 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   // If no user, render default avatar
+  // if (!user) {
+  //   return (
+  //     <div className="p-4">
+  //       <div className="flex justify-between items-center mb-6">
+  //         <h1 className="text-2xl font-bold">Logbook</h1>
+  //         <div className="w-10 h-10 rounded-full bg-gray-300"></div>
+  //       </div>
+  //       <p>Please sign in to access your logbook.</p>
+  //     </div>
+  //   );
+  // }
+
   if (!user) {
-    return (
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Logbook</h1>
-          <div className="w-10 h-10 rounded-full bg-gray-300"></div>
-        </div>
-        <p>Please sign in to access your logbook.</p>
-      </div>
-    );
+    redirect("/auth");
   }
 
   // Fetch avatar URL and full name from profiles
