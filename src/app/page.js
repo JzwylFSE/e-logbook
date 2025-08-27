@@ -23,27 +23,23 @@ export default async function Home() {
     .eq("id", user.id)
     .single();
 
-  // Prepare a safe fallback URL
-  const avatarUrl =
-    profile?.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      profile?.full_name || user.email?.split("@")[0] || "User"
-    )}&background=random`;
-
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Logbook</h1>
-
         <Link href="/settings" className="flex items-center">
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            <Image
-              src={avatarUrl}
-              alt="User Avatar"
-              width={60}
-              height={60}
-              className="object-cover"
-            />
+            {profile?.avatar_url ? (
+              <Image
+                src={profile.avatar_url}
+                alt="User Avatar"
+                width={100}
+                height={100}
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gray-300 rounded-full" />
+            )}
           </div>
         </Link>
       </div>
