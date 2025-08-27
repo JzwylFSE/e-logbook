@@ -3,6 +3,7 @@ import { createClientForServer } from "../../utils/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default async function Home() {
   const supabase = createClientForServer();
@@ -25,6 +26,7 @@ export default async function Home() {
 
   return (
     <div className="p-4">
+      <SpeedInsights />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Logbook</h1>
         <Link href="/settings" className="flex items-center">
