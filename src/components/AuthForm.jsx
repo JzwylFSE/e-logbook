@@ -97,7 +97,7 @@ export default function AuthForm() {
         </button>
         <button
           onClick={() => setMode("signup")}
-          className={`flex-1 py-2 font-medium ${
+          className={`flex-1 py-2 font-medium ${    
             mode === "signup"
               ? "border-b-2 border-blue-500 text-blue-600"
               : "text-gray-500"
