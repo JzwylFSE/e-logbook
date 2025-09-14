@@ -3,7 +3,7 @@ import { createClientForServer } from "../../utils/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default async function Home() {
   const supabase = createClientForServer();
@@ -24,23 +24,34 @@ export default async function Home() {
     .eq("id", user.id)
     .single();
 
+  // Get signed URL for avatar if it exists
+  let avatarUrl = "";
+  if (profile?.avatar_url) {
+    const { data, error } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour validity
+    if (!error && data?.signedUrl) {
+      avatarUrl = data.signedUrl;
+    }
+  }
+
   return (
     <div className="p-4">
       <SpeedInsights />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Logbook</h1>
         <Link href="/settings" className="flex items-center">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            {profile?.avatar_url ? (
+          <div className="relative w-16 h-16 rounded-full overflow-hidden">
+            {avatarUrl ? (
               <Image
-                src={profile.avatar_url}
+                src={avatarUrl}
                 alt="User Avatar"
                 width={100}
                 height={100}
-                className="object-cover"
+                className="w-16 h-16 rounded-full object-cover"
               />
             ) : (
-              <div className="w-10 h-10 bg-gray-300 rounded-full" />
+              <div className="w-16 h-16 bg-gray-300 rounded-full" />
             )}
           </div>
         </Link>

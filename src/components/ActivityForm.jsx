@@ -37,6 +37,13 @@ export default function ActivityForm({
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log("Submitting formData:", formData);
+    console.log("Student sig length:", formData.student_signature?.length);
+    console.log(
+      "Supervisor sig length:",
+      formData.supervisor_signature?.length
+    );
+
     try {
       if (isEditMode && initialData?.id) {
         const { data, error } = await supabase

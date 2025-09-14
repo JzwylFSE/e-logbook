@@ -12,10 +12,29 @@ export default function SettingsPanel({ user, profile }) {
   const [success, setSuccess] = useState("");
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
-    avatar_url: profile?.avatar_url || "",
+    avatar_url: "", // will be set to signedUrl
     email: user.email || "",
-    theme: "light", // default theme
+    theme: "light",
   });
+
+  // Fetch signed URL for avatar on mount or when avatar path changes
+  useEffect(() => {
+    async function loadSignedUrl() {
+      if (profile?.avatar_url) {
+        const { data, error } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(profile.avatar_url, 60 * 60); // 1 hour validity
+        if (!error && data?.signedUrl) {
+          setFormData((prev) => ({
+            ...prev,
+            avatar_url: data.signedUrl,
+          }));
+        }
+      }
+    }
+    loadSignedUrl();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.avatar_url]);
 
   useEffect(() => {
     // load already saved theme preference
@@ -48,7 +67,6 @@ export default function SettingsPanel({ user, profile }) {
         .from("profiles")
         .update({
           full_name: formData.full_name,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)
         .select();
@@ -69,58 +87,61 @@ export default function SettingsPanel({ user, profile }) {
     document.documentElement.classList.toggle("dark", theme === "dark");
   };
 
-  // avatar upload handler
+  // avatar upload handler (private bucket, signed URL)
   const handleAvatarUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  setLoading(true);
-  setError("");
-  setSuccess("");
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${user.id}/${fileName}`; // folder is user.id
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `avatar.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
-    // Upload to Supabase storage
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+      // 1. Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
 
-    if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      // 2. Get signed URL
+      const { data, error: signedError } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(filePath, 60 * 60); // 1 hour validity
+      if (signedError) throw signedError;
 
-    const avatarUrlWithCache = `${publicUrl}?t=${Date.now()}`;
+      // 3. Update profile in database (store path, not signed URL)
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          avatar_url: filePath,
+        })
+        .eq("id", user.id);
 
-    // Update profile table
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        avatar_url: avatarUrlWithCache,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+      if (updateError) throw updateError;
 
-    if (updateError) throw updateError;
+      // 4. Update local state with fresh signed URL
+      setFormData((prev) => ({
+        ...prev,
+        avatar_url: data.signedUrl,
+      }));
 
-    setFormData((prev) => ({ ...prev, avatar_url: avatarUrlWithCache }));
-    setSuccess("Avatar updated successfully!");
-  } catch (err) {
-    setError(err.message || "Failed to upload avatar");
-    console.error("Avatar upload error:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setSuccess("Avatar updated successfully!");
+      router.refresh(); // Refresh to show new avatar everywhere
+    } catch (err) {
+      setError(err.message || "Failed to upload avatar");
+      console.error("Avatar upload error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
@@ -159,14 +180,9 @@ export default function SettingsPanel({ user, profile }) {
                       }
                       alt="Avatar"
                       className="w-16 h-16 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          formData.full_name || user.email
-                        )}&background=random`;
-                      }}
                       width={100}
                       height={100}
-                    ></Image>
+                    />
                     <label className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                       <input
                         type="file"
@@ -253,8 +269,6 @@ export default function SettingsPanel({ user, profile }) {
                   </button>
                 </div>
               </div>
-
-              {/* Add more preferences here */}
             </div>
           </div>
         </div>

@@ -11,20 +11,26 @@ const nextConfig = {
         port: "",
         pathname: "/favicon.ico",
       },
+      // {
+      //   protocol: "https",
+      //   hostname: "wbckkgkyonodzqztlzwz.supabase.co",
+      //   port: "",
+      //   pathname: "/storage/v1/storage/buckets/avatars/**",
+      // },
       {
-        protocol: "https",
-        hostname: "wbckkgkyonodzqztlzwz.supabase.co",
-        port: "",
-        pathname: "/storage/v1/object/public/avatars/**",
-      },
+      protocol: "https",
+      hostname: "wbckkgkyonodzqztlzwz.supabase.co",
+      port: "",
+      pathname: "/storage/v1/object/sign/avatars/**",
+    },
       {
         protocol: "https",
         hostname: "ui-avatars.com",
         port: "",
-        pathname: "/api/**",
+        pathname: "/api/**", 
       },
     ],
   },
 };
 
-export default nextConfig;
+export default nextConfig; 
