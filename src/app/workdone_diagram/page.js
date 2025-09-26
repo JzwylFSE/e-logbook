@@ -6,6 +6,7 @@ import WorkdoneDiagramForm from "@/components/WorkdoneDiagramForm";
 import WorkdoneDiagramList from "@/components/WorkdoneDiagramList";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 export default function WorkdoneDiagramPage() {
   const [user, setUser] = useState(null);
@@ -71,12 +72,13 @@ export default function WorkdoneDiagramPage() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
+      <BackButton />
       <h1 className="text-2xl font-bold">Work Done Diagrams</h1>
       <Link
         href="/workdone_diagram/all_diagrams"
         className="text-blue-500 hover:underline"
       >
-        View all Diagrams →
+        All Diagrams →
       </Link>
 
       {/* Form for adding diagrams */}

@@ -36,7 +36,7 @@
             email,
             password,
             options: {
-              emailRedirectTo: `${SITE_URL}/auth/confirm`,
+              emailRedirectTo: `${SITE_URL}/auth/confirm-email`,
             },
           });
           if (error) throw error;

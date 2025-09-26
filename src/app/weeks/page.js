@@ -5,6 +5,7 @@ import { supabase } from "../../../utils/supabase/client"
 import WeekForm from "@/components/WeekForm"
 import WeekList from "@/components/WeekList"
 import { format, startOfWeek, addDays } from "date-fns"
+import BackButton from "@/components/BackButton"
 
 export default function WeeksPage() {
   const [weeks, setWeeks] = useState([])
@@ -57,6 +58,7 @@ export default function WeeksPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <BackButton />
       <h1 className="text-2xl font-bold mb-6">Weekly Logs</h1>
       <WeekForm userId={user.id} onSuccess={() => loadWeeks(user.id)} />
       <WeekList weeks={weeks} getWeekRange={getWeekRange} />

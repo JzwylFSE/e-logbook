@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../../utils/supabase/client";
 import WorkdoneDiagramList from "@/components/WorkdoneDiagramList";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 export default function AllDiagramsPage() {
   const [user, setUser] = useState(null);
@@ -52,14 +52,9 @@ export default function AllDiagramsPage() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
+      <BackButton />
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">All Diagrams</h1>
-        <Link
-          href="/workdone_diagram"
-          className="text-blue-500 hover:underline"
-        >
-          Back to recent diagram
-        </Link>
       </div>
 
       <WorkdoneDiagramList

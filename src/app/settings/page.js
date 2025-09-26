@@ -1,6 +1,7 @@
 import { createClientForServer } from "../../../utils/supabase/server";
 import { redirect } from "next/navigation";
 import SettingsPanel from "@/components/SettingsPanel";
+import BackButton from "@/components/BackButton";
 
 export default async function SettingsPage() {
     const supabase = createClientForServer();

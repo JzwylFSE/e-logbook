@@ -4,6 +4,7 @@ import { createClientForServer } from "../../../../utils/supabase/server";
 import ActivityTable from "@/components/ActivityTable";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import BackButton from "@/components/BackButton";
 
 export default async function AllActivitiesPage({ searchParams }) {
   const supabase = createClientForServer();
@@ -25,11 +26,9 @@ export default async function AllActivitiesPage({ searchParams }) {
 
   return (
     <div className="container mx-auto p-4">
+      <BackButton />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">All Activities</h1>
-        <Link href="/daily_activities" className="text-blue-500 hover:underline">
-          ← Back to Daily Activities
-        </Link>
       </div>
       {/* <ActivityTable activities={activities} /> */}
       <ActivityTable 
