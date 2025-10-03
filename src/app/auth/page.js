@@ -9,7 +9,7 @@ export default async function AuthPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    redirect("/") 
+    redirect("/")
   }
 
   return (

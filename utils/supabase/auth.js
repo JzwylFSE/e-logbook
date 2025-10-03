@@ -2,7 +2,7 @@ import { createClient } from './server'
 
 export async function getSession() {
   const supabase = createClient()
-  return supabase.auth.getSession()
+  return supabase.auth.getSession() 
 }
 
 export async function getUser() {
