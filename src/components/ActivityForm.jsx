@@ -33,29 +33,88 @@ export default function ActivityForm({
     }
   }, [weeks]);
 
+  // Utility function to upload signature to Supabase Storage
+  const uploadSignatureToStorage = async (base64Image, type, userId) => {
+    if (!base64Image || !base64Image.startsWith("data:image")) return null;
+
+    try {
+      // Convert base64 to blob
+      const base64Data = base64Image.split(",")[1];
+      const byteString = atob(base64Data);
+      const mimeString = base64Image.split(",")[0].split(":")[1].split(";")[0];
+
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      const blob = new Blob([ab], { type: mimeString });
+      const fileName = `${type}/${userId}-${Date.now()}.png`;
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("signatures")
+        .upload(fileName, blob);
+
+      if (error) throw error;
+
+      // Return the file path
+      return data.path;
+    } catch (error) {
+      console.error(`Error uploading ${type} signature:`, error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     console.log("Submitting formData:", formData);
-    console.log("Student sig length:", formData.student_signature?.length);
-    console.log(
-      "Supervisor sig length:",
-      formData.supervisor_signature?.length
-    );
 
     try {
+      // Upload signatures to storage and get file paths
+      let studentSignaturePath = null;
+      let supervisorSignaturePath = null;
+
+      if (
+        formData.student_signature &&
+        formData.student_signature.startsWith("data:image")
+      ) {
+        studentSignaturePath = await uploadSignatureToStorage(
+          formData.student_signature,
+          "student",
+          userId
+        );
+      }
+
+      if (
+        formData.supervisor_signature &&
+        formData.supervisor_signature.startsWith("data:image")
+      ) {
+        supervisorSignaturePath = await uploadSignatureToStorage(
+          formData.supervisor_signature,
+          "supervisor",
+          userId
+        );
+      }
+
+      // Prepare submission data with file paths instead of base64
+      const submissionData = {
+        activity_date: new Date(formData.activity_date).toISOString(),
+        nature_of_activity: formData.nature_of_activity,
+        description: formData.description,
+        week_id: formData.week_id,
+        student_signature: studentSignaturePath, // Now storing file path instead of base64
+        supervisor_signature: supervisorSignaturePath, // Now storing file path instead of base64
+      };
+
       if (isEditMode && initialData?.id) {
         const { data, error } = await supabase
           .from("daily_activities")
-          .update({
-            activity_date: new Date(formData.activity_date).toISOString(),
-            nature_of_activity: formData.nature_of_activity,
-            description: formData.description,
-            week_id: formData.week_id,
-            student_signature: formData.student_signature,
-            supervisor_signature: formData.supervisor_signature,
-          })
+          .update(submissionData)
           .eq("id", initialData.id)
           .select();
 
@@ -66,12 +125,7 @@ export default function ActivityForm({
           .from("daily_activities")
           .insert([
             {
-              activity_date: new Date(formData.activity_date).toISOString(),
-              nature_of_activity: formData.nature_of_activity,
-              description: formData.description,
-              week_id: formData.week_id,
-              student_signature: formData.student_signature,
-              supervisor_signature: formData.supervisor_signature,
+              ...submissionData,
               user_id: userId,
             },
           ])
@@ -79,7 +133,8 @@ export default function ActivityForm({
 
         if (error) throw error;
       }
-      // redirect and reset form after add/edit
+
+      // Reset form after success
       setFormData({
         activity_date: "",
         nature_of_activity: "",
@@ -93,7 +148,6 @@ export default function ActivityForm({
     } catch (error) {
       console.error("Error submitting form:", error);
       alert(`Error: ${error.message}`);
-      console.log(error.message);
     } finally {
       setIsSubmitting(false);
     }

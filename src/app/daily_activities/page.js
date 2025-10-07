@@ -30,7 +30,7 @@ export default async function DailyActivitiesPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <BackButton className="bg-blue"/>
+      <BackButton className="bg-blue"/> 
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Daily Activity</h1>

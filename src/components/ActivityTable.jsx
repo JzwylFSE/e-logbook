@@ -36,18 +36,47 @@ export default function ActivityTable({
 
   const renderSignature = (signature) => {
     if (!signature) return "-";
-    return (
-      <img
-        src={signature}
-        alt="Signature"
-        className="h-12 w-auto object-contain"
-        onError={(e) => {
-          e.target.onError = null;
-          e.target.style.display = "none";
-          e.target.parentElement.textContent = "-";
-        }}
-      />
-    );
+
+    // If it's a file path (new system), get public URL
+    if (
+      signature.startsWith("student/") ||
+      signature.startsWith("supervisor/")
+    ) {
+      const { data } = supabase.storage
+        .from("signatures")
+        .getPublicUrl(signature);
+
+      return (
+        <img
+          src={data.publicUrl}
+          alt="Signature"
+          className="h-12 w-auto object-contain"
+          onError={(e) => {
+            e.target.onError = null;
+            e.target.style.display = "none";
+            e.target.parentElement.textContent = "-";
+          }}
+        />
+      );
+    }
+
+    // If it's base64 (old system), use directly
+    if (signature.startsWith("data:image")) {
+      return (
+        <img
+          src={signature}
+          alt="Signature"
+          className="h-12 w-auto object-contain"
+          onError={(e) => {
+            e.target.onError = null;
+            e.target.style.display = "none";
+            e.target.parentElement.textContent = "-";
+          }}
+        />
+      );
+    }
+
+    return "-";
   };
 
   const handleDeleteClick = (activityId) => {
