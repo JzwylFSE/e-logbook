@@ -17,9 +17,8 @@ export default function SignaturePad({ onSave, label }) {
   // State to track if the user is currently drawing on the canvas
   const [isDrawing, setIsDrawing] = useState(false);
 
-  /**
-   * Clears the signature canvas.
-   */
+  
+   // Clears the signature canvas.
   const handleClear = () => {
     if (sigPad.current) { // Ensure the ref is not null before accessing its methods
       sigPad.current.clear();
@@ -112,7 +111,7 @@ export default function SignaturePad({ onSave, label }) {
         </button>
       </div>
 
-      {/* Drawing status indicator */}
+      {/* Drawing status indicator */} 
       <div className="text-center mt-2 text-xs text-gray-500">
         {isDrawing ? "Drawing..." : "Draw your signature above."}
       </div>
