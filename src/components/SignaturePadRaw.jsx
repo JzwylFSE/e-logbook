@@ -19,7 +19,9 @@ export default function SignaturePadRaw({ onSave, label }) {
             minWidth: 1,
             maxWidth: 1,
             penColor: 'black',
-            backgroundColor: 'rgb(255, 255, 255)'
+            backgroundColor: 'rgb(255, 255, 255)',
+            // width: 500,
+            // height: 200,
           });
 
           // Set up event listeners
@@ -74,6 +76,8 @@ export default function SignaturePadRaw({ onSave, label }) {
           ref={canvasRef}
           className="w-full h-48"
           style={{ touchAction: 'none' }}
+          width={500}
+          height={200}
         />
       </div>
 

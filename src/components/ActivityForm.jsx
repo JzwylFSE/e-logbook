@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../utils/supabase/client";
 import { useRouter } from "next/navigation";
-import SignaturePad from "./SignaturePad";
+import SignaturePadRaw from "./SignaturePadRaw";
 
 export default function ActivityForm({
   initialData = null,
@@ -31,6 +31,7 @@ export default function ActivityForm({
         week_id: weeks[0].id,
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weeks]);
 
   // Utility function to upload signature to Supabase Storage
@@ -71,8 +72,6 @@ export default function ActivityForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    console.log("Submitting formData:", formData);
 
     try {
       // Upload signatures to storage and get file paths
@@ -240,17 +239,25 @@ export default function ActivityForm({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <SignaturePad
+          <SignaturePadRaw
             key={signaturePadKey + "-student"}
             label="Student Signature"
             onSave={(sig) => handleSignatureSave("student_signature", sig)}
-            initialValue={formData.student_signature}
+            initialValue={
+              formData.student_signature?.startsWith?.("data:image")
+                ? formData.student_signature
+                : null
+            }
           />
-          <SignaturePad
+          <SignaturePadRaw
             key={signaturePadKey + "-supervisor"}
             label="Supervisor Signature"
             onSave={(sig) => handleSignatureSave("supervisor_signature", sig)}
-            initialValue={formData.supervisor_signature}
+            initialValue={
+              formData.supervisor_signature?.startsWith?.("data:image")
+                ? formData.supervisor_signature
+                : null
+            }
           />
         </div>
 
