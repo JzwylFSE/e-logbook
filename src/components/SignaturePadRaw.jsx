@@ -15,13 +15,26 @@ export default function SignaturePadRaw({ onSave, label }) {
         const SignaturePad = (await import('signature_pad')).default;
         
         if (canvasRef.current) {
-          signaturePadRef.current = new SignaturePad(canvasRef.current, {
+          // --- NEW: make canvas high-DPI aware and styleable ---
+          const canvas = canvasRef.current;
+          const resizeCanvasForDPR = () => {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = Math.round(rect.width * ratio);
+            canvas.height = Math.round(rect.height * ratio);
+            const ctx = canvas.getContext('2d');
+            ctx.scale(ratio, ratio);
+          };
+          // initial resize
+          resizeCanvasForDPR();
+          // optional: resize on window resize
+          window.addEventListener("resize", resizeCanvasForDPR);
+
+          signaturePadRef.current = new SignaturePad(canvas, {
             minWidth: 1,
             maxWidth: 1,
             penColor: 'black',
             backgroundColor: 'rgb(255, 255, 255)',
-            // width: 500,
-            // height: 200,
           });
 
           // Set up event listeners
@@ -34,6 +47,11 @@ export default function SignaturePadRaw({ onSave, label }) {
             console.log("📝 Drawing ended on:", label);
             setIsDrawing(false);
           });
+
+          // cleanup listener on unmount
+          const cleanup = () => window.removeEventListener("resize", resizeCanvasForDPR);
+          // store cleanup for useEffect return
+          canvas.__sigpad_cleanup = cleanup;
         }
       } catch (error) {
         console.error('Error loading signature_pad:', error);
@@ -41,6 +59,12 @@ export default function SignaturePadRaw({ onSave, label }) {
     };
 
     initSignaturePad();
+
+    return () => {
+      // cleanup
+      const canvas = canvasRef.current;
+      if (canvas && canvas.__sigpad_cleanup) canvas.__sigpad_cleanup();
+    };
   }, [label]);
 
   const handleClear = () => {
@@ -71,13 +95,12 @@ export default function SignaturePadRaw({ onSave, label }) {
         {label}
       </label>
 
-      <div className="border-2 border-gray-300 rounded-md bg-gray-50 overflow-hidden">
+      <div className="border-2 border-gray-300 rounded-md bg-white overflow-hidden">
+        {/* MAIN EDITABLE CANVAS: change className to style visually */}
         <canvas
           ref={canvasRef}
-          className="w-full h-48"
-          style={{ touchAction: 'none' }}
-          width={500}
-          height={200}
+          className="w-full h-48 rounded-md bg-white" 
+          style={{ touchAction: 'none', display: 'block' }}
         />
       </div>
 
